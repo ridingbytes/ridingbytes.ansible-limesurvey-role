@@ -28,3 +28,20 @@
                     type=database
                     grant_option=yes
   notify: restart postgresql
+
+- name: Get location of pg_hba.conf
+  command: "psql -t -P format=unaligned -c 'show hba_file';"
+  register: pg_hba_cmd
+  become: yes
+  become_user: postgres
+
+- name: Host based authentication
+  become: yes
+  become_user: postgres
+  blockinfile:
+    dest: "{{ pg_hba_cmd.stdout }}"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK "
+    insertafter: "# User custom"
+    block: |
+      host {{ limesurvey_db_name }} {{ limesurvey_user }} 127.0.0.1/32 trust
+  notify: restart postgresql
