@@ -1,0 +1,30 @@
+---
+
+- name: Setting variables depending on the distribution release
+  include_vars: "{{ item }}"
+  with_first_found:
+    - "../vars/{{ ansible_distribution }}.yml"
+  tags:
+    - always
+
+- name: Setting variables depending on the LimeSurvey version
+  include_vars: "{{ item }}"
+  with_first_found:
+    - "../vars/LimeSurvey.yml"
+  tags:
+    - always
+
+- include: install.yml
+  tags:
+    - limesurvey
+    - limesurvey_install
+
+- include: database.yml
+  tags:
+    - limesurvey
+    - limesurvey_db
+
+- include: webserver.yml
+  tags:
+    - limesurvey
+    - limesurvey_webserver

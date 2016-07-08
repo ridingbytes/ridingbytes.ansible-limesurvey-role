@@ -1,0 +1,74 @@
+---
+
+- name: Install tools
+  apt:  pkg={{ item }}
+        state=installed
+        update_cache=yes
+  with_items: "{{ limesurvey_required_tools }}"
+  tags:
+    - limesurvey
+    - limesurvey_required_tools
+
+- name: Install dependencies
+  apt:  pkg={{ item }}
+        state=installed
+        update_cache=yes
+  with_items: "{{ limesurvey_dependencies }}"
+  tags:
+    - limesurvey
+    - limesurvey_packages
+
+- name: Add LimeSurvey system user
+  user: name={{ limesurvey_user }} shell=/bin/bash
+        password={{ limesurvey_user_passwd }} update_password=on_create
+        system={{ limesurvey_user_system }}
+  tags:
+    - limesurvey
+    - limesurvey_user
+
+- name: Project repository already cloned?
+  stat: path={{ limesurvey_repo_dest }}
+  register: project_path
+  tags:
+    - limesurvey_project
+
+- name: Clone project repository (Git)
+  become: yes
+  become_user: "{{ limesurvey_user }}"
+  git:  repo={{ limesurvey_repo_url }}
+        dest={{ limesurvey_repo_dest }}
+        version={{ limesurvey_repo_rev | string }}
+        update={{ project_path.stat.exists == False and 'yes'
+                  or (limesurvey_repo_update and 'yes' or 'no') }}
+        depth={{ limesurvey_repo_depth }}
+  # when: limesurvey_repo_url
+  # notify: Restart Limesurvey
+  tags:
+    - limesurvey
+    - limesurvey_project
+
+- name: LimeSurvey already copied?
+  stat: path={{ limesurvey_www_dest }}
+  register: www_path
+  tags:
+    - limesurvey
+    - limesurvey_copy
+
+- name: Copy LimeSurvey to web root
+  command: cp -r {{ limesurvey_rootdir }} {{ limesurvey_www_dest }}
+  when: (www_path.stat.exists == False)
+  notify: restart apache2
+  tags:
+    - limesurvey
+    - limesurvey_copy
+
+- name: Ensure correct permissions
+  file: path=/var/www/html/limesurvey
+        owner=www-data
+        group=www-data
+        state=directory
+        recurse=yes
+  notify: restart apache2
+  tags:
+    - limesurvey
+    - limesurvey_copy

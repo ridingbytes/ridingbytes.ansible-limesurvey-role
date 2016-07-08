@@ -1,0 +1,30 @@
+---
+
+- name: Ensure Database locales
+  locale_gen: name={{ limesurvey_db_lc_ctype }} state=present
+  notify: restart postgresql
+
+- name: Create LimeSurvey Database
+  become: yes
+  become_user: postgres
+  postgresql_db: name={{ limesurvey_db_name }}
+                 encoding={{ limesurvey_db_encoding }}
+                 template={{ limesurvey_db_template }}
+  notify: restart postgresql
+
+- name: Add LimeSurvey Database User
+  become: yes
+  become_user: postgres
+  postgresql_user: db={{ limesurvey_db_name }}
+                   name={{ limesurvey_user }}
+  notify: restart postgresql
+
+- name: Ensure LimeSurvey Database Privileges
+  become: yes
+  become_user: postgres
+  postgresql_privs: db={{ limesurvey_db_name }}
+                    role={{ limesurvey_user }}
+                    privs=ALL
+                    type=database
+                    grant_option=yes
+  notify: restart postgresql

@@ -1,0 +1,5 @@
+---
+
+limesurvey_required_tools:
+    - sudo
+    - git
