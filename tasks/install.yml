@@ -56,7 +56,7 @@
 
 - name: Copy LimeSurvey to web root
   command: cp -r {{ limesurvey_rootdir }} {{ limesurvey_www_dest }}
-  when: (www_path.stat.exists == False)
+  when: limesurvey_always_copy  or (www_path.stat.exists == False)
   notify: restart apache2
   tags:
     - limesurvey

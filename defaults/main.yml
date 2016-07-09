@@ -9,6 +9,7 @@ limesurvey_repo_rev: "{{ limesurvey_version }}"
 limesurvey_workdir: "/home/{{ limesurvey_user }}/limesurvey"
 limesurvey_rootdir: "{{ limesurvey_workdir }}/server"
 limesurvey_www_dest: /var/www/html/limesurvey
+limesurvey_always_copy: yes
 limesurvey_repo_dest: "{{ limesurvey_rootdir }}"
 limesurvey_repo_update: True  # Update the working copy or not. This option is
                               # ignored on the first run (a checkout of the working
